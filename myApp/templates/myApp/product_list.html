@@ -1,0 +1,43 @@
+<h2>Product Inventory</h2>
+
+{% if messages %}
+    {% for message in messages %}
+        <p style="color: green;">{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Description</th>
+            <th>Date Added</th>
+            <th>Actions</th> </tr>
+        </tr>
+    </thead>
+    <tbody>
+{% for product in products %}
+<tr>
+    <td>{{ product.name }}</td>
+    <td>${{ product.price }}</td>
+    <td>{{ product.description }}</td>
+    <td>{{ product.created_at|date:"Y-m-d" }}</td>
+    
+    <td> 
+        {% if user.username == "Hanan" %}
+            <a href="{% url 'delete' product.id %}">Delete Item</a>
+        {% endif %}
+    </td>
+</tr>
+{% empty %} <tr>
+        <td colspan="5" style="text-align: center;">
+            No products found. <a href="{% url 'add_product' %}">Add one?</a>
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
+</table>
+
+<br>
+<a href="{% url 'add_product' %}">Add Another Product</a>

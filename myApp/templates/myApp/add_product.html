@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add New Product</title>
+    <style>
+        /* A little bit of CSS to make errors look professional */
+        .error-box { color: white; background-color: #d9534f; padding: 10px; margin-bottom: 15px; border-radius: 5px; }
+        .field-error { color: #d9534f; font-weight: bold; font-size: 0.9em; list-style: none; padding: 0; }
+    </style>
+</head>
+<body>
+
+    <h2>Create a New Product</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="error-box">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        {% for field in form %}
+            <div style="margin-bottom: 15px;">
+                <label>{{ field.label }}</label><br>
+                {{ field }}
+                
+                {% if field.errors %}
+                    <ul class="field-error">
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <button type="submit" style="padding: 10px 20px; cursor: pointer;">
+            Save Product
+        </button>
+    </form>
+
+</body>
+</html>
+
+

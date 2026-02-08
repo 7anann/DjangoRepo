@@ -1,0 +1,11 @@
+# Ignore the Virtual Environment
+django_venv/
+.venv/
+
+# Ignore Secrets
+.env
+
+# Ignore Python bytecode
+__pycache__/
+*.py[cod]
+
