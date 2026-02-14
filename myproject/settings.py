@@ -172,7 +172,7 @@ WSGI_APPLICATION = "myproject.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DB_NAME", default=BASE_DIR / "db.sqlite3"),
+        "NAME": config("DB_NAME", default=str(BASE_DIR / "db.sqlite3")),
         # "NAME": config("DB_NAME"),  # python-decouple syntax
         "USER": config("DB_USER", default=""),
         "PASSWORD": config("DB_PASSWORD", default=""),
