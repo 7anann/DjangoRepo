@@ -167,21 +167,35 @@ WSGI_APPLICATION = "myproject.wsgi.application"
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 # settings.py
+import sys
 
-# Use config() to get the variables from .env
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DB_NAME", default=str(BASE_DIR / "db.sqlite3")),
-        # "NAME": config("DB_NAME"),  # python-decouple syntax
-        "USER": config("DB_USER", default=""),
-        "PASSWORD": config("DB_PASSWORD", default=""),
-        "HOST": config("DB_HOST", default="localhost"),  # You can even set defaults!
-        # For Docker we replace host with this line
-        # 'HOST': 'db',  # <--- This matches the name in docker-compose.yml
-        "PORT": config("DB_PORT", default=""),  # It can automatically convert types
+# Check if we are running a test
+TESTING = "test" in sys.argv
+
+if TESTING:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": str(BASE_DIR / "db.sqlite3"),
+        }
     }
-}
+else:
+    # Use config() to get the variables from .env
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": config("DB_NAME", default=str(BASE_DIR / "db.sqlite3")),
+            # "NAME": config("DB_NAME"),  # python-decouple syntax
+            "USER": config("DB_USER", default=""),
+            "PASSWORD": config("DB_PASSWORD", default=""),
+            "HOST": config(
+                "DB_HOST", default="localhost"
+            ),  # You can even set defaults!
+            # For Docker we replace host with this line
+            # 'HOST': 'db',  # <--- This matches the name in docker-compose.yml
+            "PORT": config("DB_PORT", default=""),  # It can automatically convert types
+        }
+    }
 
 
 # Password validation
