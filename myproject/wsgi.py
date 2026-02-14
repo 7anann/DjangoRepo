@@ -11,6 +11,8 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'myproject.settings')
+# 1. It tells the server where your settings are
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "myproject.settings")
 
+# 2. This 'application' variable is what Gunicorn 'holds onto'
 application = get_wsgi_application()

@@ -37,3 +37,16 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"Profile for {self.user.username}"
+
+
+class Post(models.Model):
+    class Meta:
+        ordering = ["-id"]  # This tells Django: "Always show newest first"
+
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=1
+    )
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+    author_email = models.EmailField()
+    created_at = models.DateTimeField(auto_now_add=True)

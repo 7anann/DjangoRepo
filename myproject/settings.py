@@ -31,7 +31,23 @@ SECRET_KEY = "django-insecure-zzlk*m@3h*x%1*lspx-edw(agh8jehs8^^^s@x$of!16)(i(dj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# 1. ALLOWED_HOSTS
+# In Docker, Nginx and Django talk over a private network.
+# We add '*' for development or specific container names for production.
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "web"]
+
+CORS_ALLOWED_ORIGINS = [
+    "https://www.my-official-app.com",
+    "https://my-app-frontend.vercel.app",
+]
+
+"""
+# Ensure this is ONLY in your production_settings.py
+DEBUG = False
+SECURE_SSL_REDIRECT = True  # Redirects http:// to https://
+SESSION_COOKIE_SECURE = True  # Browser won't send session cookie over HTTP
+CSRF_COOKIE_SECURE = True  # Browser won't send CSRF cookie over HTTP
+"""
 
 
 # Application definition
@@ -43,10 +59,73 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
+    "rest_framework.authtoken",  # 1. Adds the Token table to your DB
     "myApp.apps.MyappConfig",
+    "corsheaders",
 ]
 
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.TokenAuthentication",  # 2. Look for "Authorization: Token ..."
+        "rest_framework.authentication.SessionAuthentication",  # 3. Keep browser login working
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",  # No one gets in without a token!
+    ],
+    # 1. Pagination: Limits results to 10 per page
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,  # Number of posts per page
+    # 2. Filtering & Ordering: Enables the engines
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",  # For Filtering
+        "rest_framework.filters.OrderingFilter",  # For Ordering
+    ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "5/day",  # Only 5 requests per day for strangers
+        "user": "3/minute",  # Only 10 requests per minute for users
+    },
+    "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.AcceptHeaderVersioning",
+    "DEFAULT_VERSION": "v1",
+    "ALLOWED_VERSIONS": ["v1", "v2"],
+    # This tells DRF that in your custom media type,
+    # the version is identified by the word "version"
+    "VERSION_PARAM": "version",
+    # This is the "Media Type" part!
+    # It tells Django to look for this specific 'base' string.
+    "DEFAULT_RENDERER_CLASSES": [
+        "myApp.renderers.MyProjectJSONRenderer",  # Add your custom one first!
+        "rest_framework.renderers.JSONRenderer",
+        "rest_framework.renderers.BrowsableAPIRenderer",
+    ],
+    # No VERSION_PARAM needed here for AcceptHeader
+    # "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.QueryParameterVersioning",
+    # "DEFAULT_VERSION": "v1",
+    # "ALLOWED_VERSIONS": ["v1", "v2"],
+    # "VERSION_PARAM": "version",  # This is the 'key' in ?version=v1
+    # "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.URLPathVersioning",
+    # "DEFAULT_VERSION": "v1",
+    # "ALLOWED_VERSIONS": ["v1", "v2"],
+    # "VERSION_PARAM": "version",
+}
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),  # Short life for security
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),  # Long life to get new access tokens
+    "ROTATE_REFRESH_TOKENS": True,  # Give a new refresh token every time
+    "AUTH_HEADER_TYPES": ("Bearer",),  # Use "Bearer <token>" in Postman
+}
+
+
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",  # Must be at the top!
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -54,6 +133,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # YOUR CUSTOM MIDDLEWARE GOES HERE
+    "myApp.middleware.PerformanceTimerMiddleware",
 ]
 
 ROOT_URLCONF = "myproject.urls"
@@ -89,6 +170,8 @@ DATABASES = {
         "USER": config("DB_USER"),
         "PASSWORD": config("DB_PASSWORD"),
         "HOST": config("DB_HOST", default="localhost"),  # You can even set defaults!
+        # For Docker we replace host with this line
+        # 'HOST': 'db',  # <--- This matches the name in docker-compose.yml
         "PORT": config("DB_PORT", cast=int),  # It can automatically convert types
     }
 }
@@ -131,6 +214,9 @@ AUTH_USER_MODEL = "myApp.CustomUser"  # Format: 'app_name.ModelName'
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
+
+# The ACTUAL folder on your computer where files will be gathered
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # settings.py
 LOGIN_URL = "/admin/login/"

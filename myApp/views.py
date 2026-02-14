@@ -73,3 +73,61 @@ class ProductList(ListView):
     model = Product
     template_name = "product_list.html"
     context_object_name = "products"
+
+
+# my_app/views.py
+from rest_framework.views import APIView
+from rest_framework import viewsets
+from rest_framework.response import Response
+from .models import Post
+from .serializers import PostSerializer
+from rest_framework import viewsets, permissions
+from .permissions import IsAuthorOrReadOnly
+
+# from .permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated  # Make sure this is imported!
+
+
+# 2. Writing a ViewSet
+class PostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+
+    def get_queryset(self):
+        # Check the version passed in the URL
+        version = self.request.version
+
+        if self.request.version == "v2":
+            # Exclude posts made by the 'admin' user for a cleaner guest feed
+            return Post.objects.exclude(author__username="Hanan")
+        return Post.objects.all()
+
+    filterset_fields = ["author", "title"]  # Users can now filter by these
+
+    ordering_fields = ["created_at", "id"]  # Users can now sort by these
+
+    # This line locks the view
+    permission_classes = [IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+
+
+# 1. Writing an APIView
+class PostList(APIView):
+    # read logic
+    def get(self, request):
+        posts = Post.objects.all()
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)
+
+    # 2. Write logic
+    def post(self, request):
+        # We take the data the user sent (request.data) and give it to the serializer
+        serializer = PostSerializer(data=request.data)
+
+        # Check if the data is valid (e.g., is the email actually an email?)
+        if serializer.is_valid():
+            serializer.save()  # This calls the create() method in your serializer
+            return Response(serializer.data, status=201)  # 201 means "Created"
+
+        # If not valid, return the errors (e.g., "This field is required")
+        return Response(serializer.errors, status=400)  # 400 means "Bad Request"

@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # The Django App
+  web:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=0
+
+  # The Gatekeeper (Nginx)
+  nginx:
+    image: nginx:mainline
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./staticfiles:/app/staticfiles
+    depends_on:
+      - web
+
+
+      

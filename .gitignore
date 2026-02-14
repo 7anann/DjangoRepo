@@ -9,3 +9,7 @@ django_venv/
 __pycache__/
 *.py[cod]
 
+# Database Backups
+*.sql
+*.dump
+

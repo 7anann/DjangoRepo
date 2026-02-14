@@ -1,0 +1,29 @@
+name: Django CI  # The name of your assembly line
+
+on:
+  push:
+    branches: [ "main" ]  # Run this whenever code is pushed to 'main'
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest  # The "Runner" (The robot's computer)
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4  # Step 1: Grab the code
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'  # Step 2: Install Python
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt  # Step 3: Use that requirements file!
+
+    - name: Run Tests
+      run: |
+        python manage.py test  # Step 4: The final exam
