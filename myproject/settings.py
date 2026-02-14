@@ -179,9 +179,7 @@ DATABASES = {
         "HOST": config("DB_HOST", default="localhost"),  # You can even set defaults!
         # For Docker we replace host with this line
         # 'HOST': 'db',  # <--- This matches the name in docker-compose.yml
-        "PORT": config(
-            "DB_PORT", cast=int, default=""
-        ),  # It can automatically convert types
+        "PORT": config("DB_PORT", default=""),  # It can automatically convert types
     }
 }
 
