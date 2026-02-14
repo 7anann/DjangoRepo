@@ -14,7 +14,13 @@ from decouple import config
 
 # Use config() to get the variables from .env
 # SECRET_KEY = config("SECRET_KEY")
-DEBUG = config("DEBUG", default=False, cast=bool)
+# Look for the real key in .env first.
+# If it's not there (like in GitHub Actions), use the insecure one.
+SECRET_KEY = config("SECRET_KEY", default="django-insecure-for-testing-only")
+
+# IMPORTANT: Make sure DEBUG is False in production!
+DEBUG = config("DEBUG", default=True, cast=bool)
+# DEBUG = config("DEBUG", default=False, cast=bool)
 
 from pathlib import Path
 
@@ -166,13 +172,16 @@ WSGI_APPLICATION = "myproject.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DB_NAME"),  # python-decouple syntax
-        "USER": config("DB_USER"),
-        "PASSWORD": config("DB_PASSWORD"),
+        "NAME": config("DB_NAME", default=BASE_DIR / "db.sqlite3"),
+        # "NAME": config("DB_NAME"),  # python-decouple syntax
+        "USER": config("DB_USER", default=""),
+        "PASSWORD": config("DB_PASSWORD", default=""),
         "HOST": config("DB_HOST", default="localhost"),  # You can even set defaults!
         # For Docker we replace host with this line
         # 'HOST': 'db',  # <--- This matches the name in docker-compose.yml
-        "PORT": config("DB_PORT", cast=int),  # It can automatically convert types
+        "PORT": config(
+            "DB_PORT", cast=int, default=""
+        ),  # It can automatically convert types
     }
 }
 
